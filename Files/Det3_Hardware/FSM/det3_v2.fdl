@@ -1,0 +1,117 @@
+dp det3 (in a_in , b_in, c_in, d_in, e_in, f_in, g_in, h_in, i_in : tc(8); out result : tc(32))
+{
+    reg a, b, c, d, e, f, g, h, i : tc(8);
+    reg multidet2_1, multidet2_2, multidet2_3, multidet2_4, multidet2_5, multidet2_6  : tc(16);
+    reg det21, det22, det23 : tc(16);
+    reg multidet3_1, multidet3_2, multidet3_3 : tc(32);
+    reg dif1, dif2, dif3 : tc(32);
+
+    sfg inint {
+        a = a_in;
+        b = b_in;
+        c = c_in;
+        d = d_in;
+        e = e_in;
+        f = f_in;
+        g = g_in;
+        h = h_in;
+        i = i_in;
+        $display (  "cycle=", $cycle, 
+                    "||a=", a_in,
+                    "||b=", b_in,
+                    "||c=", c_in,
+                    "||d=", d_in,
+                    "||e=", e_in,
+                    "||f=", f_in,
+                    "||g=", g_in,
+                    "||h=", h_in,
+                    "||i=", i_in);
+    }
+    sfg multiplicationdet2 {
+        multidet2_1 = e*i; 
+        multidet2_2 = f*h;
+        multidet2_3 = d*i;
+        multidet2_4 = f*g;
+        multidet2_5 = d*h;
+        multidet2_6 = e*g;
+        $display (  "cycle=", $cycle,
+                    "||multidet2_1=",multidet2_1,
+                    "||multidet2_2=", multidet2_2,
+                    "||multidet2_3=", multidet2_3,
+                    "||multidet2_4=", multidet2_4,
+                    "||multidet2_5=", multidet2_5,
+                    "||multidet2_6=", multidet2_6,
+                    "||result=", result);
+    } 
+    sfg differencedet2 { 
+        det21 = multidet2_1 - multidet2_2;
+        det22 = multidet2_3 - multidet2_4;
+        det23 = multidet2_5 - multidet2_6;
+        $display (  "cycle=", $cycle,
+                    "||det21=", det21,
+                    "||det22=", det22,
+                    "||det23=", det23,
+                    "||result=", result);
+    }
+    sfg multiplicationdet3{
+        multidet3_1 = a * det21;
+        multidet3_2 = b * det22;
+        multidet3_3 = c * det23;
+        $display (  "cycle=", $cycle,
+                    "||multidet3_1=", multidet3_1,
+                    "||multidet3_2=", multidet3_2,
+                    "||multidet3_3=", multidet3_3,
+                    "||result=", result);
+    }
+    sfg output {
+        result = multidet3_1 - multidet3_2 + multidet3_3;
+        $display("result=", result,
+        "||cycle=", $cycle);
+    }
+    sfg outidle {
+        result = 0;
+    }
+}
+
+fsm det3_ctl (det3){
+    initial s0;
+    state s1, s2, s3, s4;
+
+    @s0 (inint, outidle) -> s1;
+
+    @s1 (multiplicationdet2, outidle) -> s2;
+
+    @s2 (differencedet2, outidle) -> s3;
+
+    @s3 (multiplicationdet3, outidle) -> s4;
+    
+    @s4 (output) -> s4;
+}
+
+
+dp test_det3 (out a, b, c, d, e, f, g, h, i  : tc (8)){
+    sfg run { 
+        a = 20;
+        b = 32;
+        c = 15;
+        d = 15;
+        e = 20;
+        f = 32;
+        g = 19;
+        h = 22;
+        i = 87;
+    }
+}
+
+hardwired h_test_det3 (test_det3){run;}
+
+dp det3_sys {
+    sig a, b, c, d, e, f, g, h, i : tc (8);
+    sig result : tc(32);
+    use det3 (a, b, c, d, e, f, g, h, i, result);
+    use test_det3 (a, b, c, d, e, f, g, h, i);
+}
+
+system s {
+    det3_sys;
+}

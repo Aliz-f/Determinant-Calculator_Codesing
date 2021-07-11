@@ -1,0 +1,55 @@
+dp det2 (in a_in , b_in, c_in, d_in : tc(8);
+        out result : tc(16))
+{
+    reg a, b, c, d : tc(8);
+    reg multi1, multi2 : tc(16);
+    reg dif : tc(16);
+
+    sfg inint {a = a_in; b = b_in; c = c_in; d = d_in;
+        $display ("cycle=", $cycle, "|| a=", a_in, "|| b=", b_in, "||c=",  c_in, "||d=", d_in);}
+    sfg multiplication {multi1 = a*d; multi2 = b*c;
+        $display ("cycle=", $cycle, "||multi1=", multi1, "||multi2=", multi2, "||result=", result);} 
+    sfg difference { dif = multi1 - multi2;
+        $display ("cycle=", $cycle, "||multi1=", multi1, "||multi2=", multi2, "||dif=", dif, "||result=", result);} 
+    sfg output {result = dif;$display("result=", result, "||cycle=", $cycle);}
+    sfg outidle {result = 0;}
+
+}
+
+
+fsm det2_ctl (det2){
+
+    initial s0;
+    state s1, s2, s3;
+
+    @s0 (inint, outidle) -> s1;
+
+    @s1 (multiplication, outidle) -> s2;
+
+    @s2 (difference, outidle) -> s3;
+    
+    @s3 (output) -> s3;
+
+}
+
+
+dp test_det2 (out a, b, c, d  : tc (8)){
+    sfg run {   a = 7;
+                b = 8;
+                c = 6;
+                d = 5;
+    }
+}
+
+hardwired h_test_det2 (test_det2){run;}
+
+dp det2_sys {
+    sig a, b, c, d : tc (8);
+    sig result : tc(16);
+    use det2 (a, b, c, d, result);
+    use test_det2 (a, b, c, d);
+}
+
+system s {
+    det2_sys;
+}

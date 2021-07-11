@@ -1,0 +1,59 @@
+dp calculate_det (in a_in, b_in, c_in, d_in : tc(8); out result : tc(16)){
+    always{result = (a_in*d_in) - (b_in*c_in);}
+}
+
+dp calculate_multi (in a_in : tc(8); in multi : tc(16); out result : tc(32)){
+    always{result = a_in * multi;}
+}
+
+dp calculate_sumsub (in a_in, b_in, c_in : tc(32); out result : tc(32)){
+    always{result = a_in - b_in + c_in;}
+}
+
+dp calculate_det2 : calculate_det
+dp calculate_det3 : calculate_det
+dp calculate_multi2 : calculate_multi
+dp calculate_multi3 : calculate_multi
+
+dp det3 (in a_in, b_in, c_in, d_in, e_in, f_in, g_in, h_in, i_in : tc(8);
+        out resultdet3 : tc(32))
+{
+    sig temp1, temp2, temp3 : tc(16);
+    sig temp4, temp5, temp6 : tc(32);
+    sig result : tc(32);
+    use calculate_det (e_in, f_in, h_in, i_in, temp1);
+    use calculate_det2 (d_in, f_in, g_in, i_in, temp2);
+    use calculate_det3 (d_in, e_in, g_in, h_in, temp3);
+    use calculate_multi (a_in, temp1, temp4);
+    use calculate_multi2 (b_in, temp2, temp5);
+    use calculate_multi3 (c_in, temp3, temp6);
+    use calculate_sumsub (temp4, temp5, temp6, resultdet3);
+    always{$display("||a=", a_in, "||b=", b_in, "||c=", c_in, "||d=", d_in, "||e=", e_in, "||f=", f_in, "||g=", g_in, "||h=", h_in, "||i=", i_in, "||result=",resultdet3);}
+}
+
+
+dp test (out a_in, b_in, c_in, d_in, e_in, f_in, g_in, h_in, i_in : tc(8)){
+
+    always{
+        a_in = 12;
+        b_in = 50;
+        c_in = 71;
+        d_in = 20;
+        e_in = 4;
+        f_in = 17;
+        g_in = 82;
+        h_in = 24;
+        i_in = 15;
+    }
+}
+
+dp systest {
+    sig a, b, c, d, e, f, g, h, i : tc(8);
+    sig resultdet3 : tc(32);
+    use test (a, b, c, d, e, f, g, h, i);
+    use det3 (a, b, c, d, e, f, g, h, i, resultdet3);
+}
+
+system S {
+    systest;
+}
